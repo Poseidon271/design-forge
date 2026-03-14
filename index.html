@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CityPulse — Smart City Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-dot" id="cursor-dot"></div>
+
+  <!-- NOISE OVERLAY -->
+  <div class="noise"></div>
+
+  <!-- SCAN LINE -->
+  <div class="scanline"></div>
+
+  <!-- ═══ LOADER ═══ -->
+  <div class="loader" id="loader">
+    <div class="loader-inner">
+      <div class="loader-logo">CITY<span>PULSE</span></div>
+      <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+      <div class="loader-status" id="loader-status">INITIALIZING CITY SYSTEMS...</div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN APP ═══ -->
+  <div class="app" id="app">
+
+    <!-- ── NAV ── -->
+    <nav class="nav" id="nav">
+      <div class="nav-left">
+        <div class="nav-logo">
+          <span class="logo-icon">◈</span>
+          CITY<span class="logo-accent">PULSE</span>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-tag">
+          <span class="blink-dot"></span>
+          LIVE COMMAND CENTER
+        </div>
+      </div>
+      <div class="nav-center">
+        <a class="nav-link active" data-section="dashboard">DASHBOARD</a>
+        <a class="nav-link" data-section="map">CITY MAP</a>
+        <a class="nav-link" data-section="analytics">ANALYTICS</a>
+        <a class="nav-link" data-section="alerts">ALERTS <span class="nav-badge">7</span></a>
+      </div>
+      <div class="nav-right">
+        <div class="nav-clock" id="nav-clock">--:--:--</div>
+        <button class="nav-report-btn" onclick="scrollToReport()">
+          <span>+ REPORT</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ── HERO BAND ── -->
+    <section class="hero">
+      <div class="hero-bg-grid"></div>
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <span class="eyebrow-line"></span>
+          URBAN INTELLIGENCE PLATFORM v2.4
+          <span class="eyebrow-line"></span>
+        </div>
+        <h1 class="hero-heading">
+          <span class="h-line" data-delay="0">KNOW YOUR</span>
+          <span class="h-line accent-stroke" data-delay="80">CITY.</span>
+          <span class="h-line" data-delay="160">FIX IT</span>
+          <span class="h-line accent-fill" data-delay="240">TOGETHER.</span>
+        </h1>
+        <p class="hero-sub">
+          Real-time infrastructure reporting, live transit tracking, and air quality
+          monitoring — unified for citizens and administrators.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-glow" onclick="scrollToReport()">
+            <span class="btn-glow-bg"></span>
+            <span class="btn-glow-text">⚡ REPORT ISSUE</span>
+          </button>
+          <button class="btn-outline" onclick="showToast('🗺 Map view loading...')">
+            EXPLORE MAP <span class="arrow-anim">→</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="hero-ticker">
+        <div class="ticker-label">LIVE FEED</div>
+        <div class="ticker-track" id="ticker-track">
+          <div class="ticker-inner" id="ticker-inner"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── STAT STRIP ── -->
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num" id="s-resolved">0</div>
+        <div class="stat-meta">Issues Resolved <span class="stat-delta up">↑ 12%</span></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num accent-blue" id="s-buses">0</div>
+        <div class="stat-meta">Buses Active <span class="stat-delta up">↑ 3</span></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num accent-green" id="s-aqi">0</div>
+        <div class="stat-meta">AQI — <span class="aqi-status-text">GOOD</span></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num accent-red" id="s-critical">0</div>
+        <div class="stat-meta">Critical Reports <span class="stat-delta down">↓ 2</span></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num accent-amber" id="s-uptime">99.4<span style="font-size:1.2rem">%</span></div>
+        <div class="stat-meta">System Uptime</div>
+      </div>
+    </div>
+
+    <!-- ── MAIN GRID ── -->
+    <div class="main-grid">
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="sidebar">
+
+        <!-- AQI MODULE -->
+        <div class="panel panel-aqi">
+          <div class="panel-header">
+            <span class="panel-label">AIR QUALITY INDEX</span>
+            <span class="panel-badge badge-good">GOOD</span>
+          </div>
+          <div class="aqi-visual">
+            <svg class="aqi-gauge" viewBox="0 0 120 70">
+              <path d="M10,65 A55,55,0,0,1,110,65" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8" stroke-linecap="round"/>
+              <path id="aqi-arc" d="M10,65 A55,55,0,0,1,110,65" fill="none" stroke="url(#aqi-grad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="172.8" stroke-dashoffset="120"/>
+              <defs>
+                <linearGradient id="aqi-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#00ffc8"/>
+                  <stop offset="100%" stop-color="#00b4ff"/>
+                </linearGradient>
+              </defs>
+              <text x="60" y="58" text-anchor="middle" fill="white" font-size="18" font-weight="700" font-family="'Cabinet Grotesk'">42</text>
+            </svg>
+          </div>
+          <div class="aq-rows">
+            <div class="aq-row">
+              <span class="aq-name">PM2.5</span>
+              <div class="aq-track"><div class="aq-fill" style="--w:38%;--c:#00ffc8"></div></div>
+              <span class="aq-num">38</span>
+            </div>
+            <div class="aq-row">
+              <span class="aq-name">PM10</span>
+              <div class="aq-track"><div class="aq-fill" style="--w:55%;--c:#f7c34f"></div></div>
+              <span class="aq-num">55</span>
+            </div>
+            <div class="aq-row">
+              <span class="aq-name">NO₂</span>
+              <div class="aq-track"><div class="aq-fill" style="--w:22%;--c:#4fb3f7"></div></div>
+              <span class="aq-num">22</span>
+            </div>
+            <div class="aq-row">
+              <span class="aq-name">CO</span>
+              <div class="aq-track"><div class="aq-fill" style="--w:18%;--c:#4fb3f7"></div></div>
+              <span class="aq-num">18</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ISSUES -->
+        <div class="panel panel-issues">
+          <div class="panel-header">
+            <span class="panel-label">RECENT ISSUES</span>
+            <div class="filter-pills" id="filter-pills">
+              <button class="pill active" onclick="filterIssues(this,'all')">ALL</button>
+              <button class="pill" onclick="filterIssues(this,'road')">ROAD</button>
+              <button class="pill" onclick="filterIssues(this,'water')">H₂O</button>
+              <button class="pill" onclick="filterIssues(this,'power')">PWR</button>
+            </div>
+          </div>
+          <div class="issue-list" id="issue-list">
+            <div class="issue-card severity-critical" data-cat="road" onclick="showToast('📍 Pothole · MG Road · Crew #4 dispatched')">
+              <div class="issue-icon">⚠</div>
+              <div class="issue-body">
+                <div class="issue-title">Pothole — Sector 21</div>
+                <div class="issue-loc">MG Road, Near Gate 4</div>
+              </div>
+              <div class="issue-right">
+                <div class="issue-time">2m</div>
+                <div class="issue-sev">CRIT</div>
+              </div>
+            </div>
+            <div class="issue-card severity-moderate" data-cat="power" onclick="showToast('💡 Streetlight · Connaught Place · Electrician en route')">
+              <div class="issue-icon">◉</div>
+              <div class="issue-body">
+                <div class="issue-title">Streetlight Out</div>
+                <div class="issue-loc">Connaught Place, Block C</div>
+              </div>
+              <div class="issue-right">
+                <div class="issue-time">8m</div>
+                <div class="issue-sev">MOD</div>
+              </div>
+            </div>
+            <div class="issue-card severity-moderate" data-cat="road" onclick="showToast('🗑 Garbage · Lajpat Nagar · Sanitation ETA 25 min')">
+              <div class="issue-icon">▣</div>
+              <div class="issue-body">
+                <div class="issue-title">Garbage Overflow</div>
+                <div class="issue-loc">Lajpat Nagar Market</div>
+              </div>
+              <div class="issue-right">
+                <div class="issue-time">15m</div>
+                <div class="issue-sev">MOD</div>
+              </div>
+            </div>
+            <div class="issue-card severity-critical" data-cat="water" onclick="showToast('💧 Pipe Burst · Karol Bagh · Emergency crew dispatched!')">
+              <div class="issue-icon">⚡</div>
+              <div class="issue-body">
+                <div class="issue-title">Water Pipe Burst</div>
+                <div class="issue-loc">Karol Bagh, H-Block</div>
+              </div>
+              <div class="issue-right">
+                <div class="issue-time">22m</div>
+                <div class="issue-sev">CRIT</div>
+              </div>
+            </div>
+            <div class="issue-card severity-resolved" data-cat="road" onclick="showToast('✅ Road Cave · Dwarka · Resolved')">
+              <div class="issue-icon">✓</div>
+              <div class="issue-body">
+                <div class="issue-title">Road Cave-in</div>
+                <div class="issue-loc">Dwarka Sector 10</div>
+              </div>
+              <div class="issue-right">
+                <div class="issue-time">1h</div>
+                <div class="issue-sev">DONE</div>
+              </div>
+            </div>
+            <div class="issue-card severity-resolved" data-cat="power" onclick="showToast('✅ Power Restored · Rohini · Resolved')">
+              <div class="issue-icon">✓</div>
+              <div class="issue-body">
+                <div class="issue-title">Power Outage</div>
+                <div class="issue-loc">Rohini Sector 14</div>
+              </div>
+              <div class="issue-right">
+                <div class="issue-time">2h</div>
+                <div class="issue-sev">DONE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WEATHER -->
+        <div class="panel panel-weather">
+          <div class="panel-header">
+            <span class="panel-label">CONDITIONS</span>
+            <span class="weather-temp">28°C</span>
+          </div>
+          <div class="weather-row">
+            <div class="weather-item">
+              <div class="weather-val">72%</div>
+              <div class="weather-key">HUMIDITY</div>
+            </div>
+            <div class="weather-item">
+              <div class="weather-val">14</div>
+              <div class="weather-key">WIND km/h</div>
+            </div>
+            <div class="weather-item">
+              <div class="weather-val">4km</div>
+              <div class="weather-key">VISIBILITY</div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ── CONTENT ── -->
+      <div class="content-col">
+
+        <!-- MAP PANEL -->
+        <div class="panel panel-map">
+          <div class="panel-header">
+            <span class="panel-label">LIVE CITY MAP</span>
+            <div class="map-controls">
+              <span class="map-coord" id="map-coord">28.6139°N · 77.2090°E</span>
+              <button class="map-btn" onclick="showToast('🗺 Map refreshed')">↻ REFRESH</button>
+              <button class="map-btn map-btn-active" onclick="showToast('Satellite view enabled')">SAT</button>
+            </div>
+          </div>
+          <div class="map-body">
+            <!-- SVG city map artwork -->
+            <svg class="map-svg" viewBox="0 0 900 380" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <radialGradient id="bg-grd" cx="50%" cy="50%" r="70%">
+                  <stop offset="0%" stop-color="#0d1b3e"/>
+                  <stop offset="100%" stop-color="#060d1f"/>
+                </radialGradient>
+                <filter id="glow-f">
+                  <feGaussianBlur stdDeviation="3" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <filter id="pin-glow">
+                  <feGaussianBlur stdDeviation="5" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <!-- BG -->
+              <rect width="900" height="380" fill="url(#bg-grd)"/>
+              <!-- Grid -->
+              <g stroke="rgba(79,142,247,0.06)" stroke-width="0.5">
+                <line x1="0" y1="76" x2="900" y2="76"/>
+                <line x1="0" y1="152" x2="900" y2="152"/>
+                <line x1="0" y1="228" x2="900" y2="228"/>
+                <line x1="0" y1="304" x2="900" y2="304"/>
+                <line x1="180" y1="0" x2="180" y2="380"/>
+                <line x1="360" y1="0" x2="360" y2="380"/>
+                <line x1="540" y1="0" x2="540" y2="380"/>
+                <line x1="720" y1="0" x2="720" y2="380"/>
+              </g>
+              <!-- Major Roads -->
+              <g fill="none" stroke-linecap="round">
+                <path d="M0,190 Q225,175 450,190 Q675,205 900,190" stroke="rgba(79,142,247,0.18)" stroke-width="22"/>
+                <path d="M450,0 Q440,95 450,190 Q460,285 450,380" stroke="rgba(79,142,247,0.18)" stroke-width="14"/>
+                <path d="M0,95 Q225,88 450,95 Q675,102 900,95" stroke="rgba(79,142,247,0.1)" stroke-width="10"/>
+                <path d="M0,285 Q225,278 450,285 Q675,292 900,285" stroke="rgba(79,142,247,0.1)" stroke-width="10"/>
+                <path d="M225,0 Q220,95 225,190 Q230,285 225,380" stroke="rgba(79,142,247,0.1)" stroke-width="10"/>
+                <path d="M675,0 Q670,95 675,190 Q680,285 675,380" stroke="rgba(79,142,247,0.1)" stroke-width="10"/>
+              </g>
+              <!-- Road labels -->
+              <g fill="rgba(255,255,255,0.12)" font-size="9" font-family="'DM Mono'" letter-spacing="1">
+                <text x="60" y="186">MG ROAD</text>
+                <text x="455" y="100" transform="rotate(90,455,100)">RING ROAD</text>
+              </g>
+              <!-- City blocks -->
+              <g fill="rgba(79,142,247,0.04)" stroke="rgba(79,142,247,0.08)" stroke-width="0.5">
+                <rect x="20" y="20" width="80" height="60" rx="3"/>
+                <rect x="120" y="20" width="90" height="60" rx="3"/>
+                <rect x="20" y="115" width="65" height="55" rx="3"/>
+                <rect x="260" y="20" width="80" height="60" rx="3"/>
+                <rect x="480" y="20" width="100" height="65" rx="3"/>
+                <rect x="600" y="20" width="80" height="65" rx="3"/>
+                <rect x="700" y="20" width="80" height="65" rx="3"/>
+                <rect x="20" y="215" width="90" height="70" rx="3"/>
+                <rect x="130" y="215" width="75" height="70" rx="3"/>
+                <rect x="270" y="215" width="80" height="70" rx="3"/>
+                <rect x="480" y="215" width="95" height="70" rx="3"/>
+                <rect x="600" y="215" width="85" height="70" rx="3"/>
+                <rect x="705" y="215" width="80" height="70" rx="3"/>
+                <rect x="20" y="310" width="95" height="55" rx="3"/>
+                <rect x="260" y="310" width="80" height="55" rx="3"/>
+                <rect x="480" y="310" width="100" height="55" rx="3"/>
+                <rect x="700" y="310" width="80" height="55" rx="3"/>
+              </g>
+
+              <!-- Bus route animated line -->
+              <path id="bus-route-line" d="M50,190 Q225,175 450,190 Q625,205 820,190"
+                fill="none" stroke="#4fb3f7" stroke-width="2" stroke-dasharray="8 4" opacity="0.6"/>
+
+              <!-- Animated buses -->
+              <circle class="bus-dot" id="bus-a" cx="150" cy="188" r="5" fill="#4fb3f7" filter="url(#glow-f)" style="cursor:pointer" onclick="showToast('🚌 Bus 44C — On Time · 3 min away')"/>
+              <circle class="bus-dot" id="bus-b" cx="520" cy="192" r="5" fill="#7c6cf7" filter="url(#glow-f)" style="cursor:pointer" onclick="showToast('🚌 Bus 7B — 4 min late')"/>
+              <circle class="bus-dot" id="bus-c" cx="720" cy="189" r="4" fill="#f74f7a" filter="url(#glow-f)" style="cursor:pointer" onclick="showToast('🚌 Bus 22 — Major delay!')"/>
+
+              <!-- Issue pins -->
+              <!-- Critical: Pothole -->
+              <g filter="url(#pin-glow)" style="cursor:pointer" onclick="showToast('⚠ Pothole · MG Road · Crew dispatched')">
+                <circle cx="468" cy="185" r="12" fill="rgba(247,79,122,0.15)"/>
+                <circle cx="468" cy="185" r="7" fill="#f74f7a"/>
+                <text x="468" y="189" text-anchor="middle" fill="white" font-size="8">!</text>
+              </g>
+              <!-- Critical: Water -->
+              <g filter="url(#pin-glow)" style="cursor:pointer" onclick="showToast('💧 Water Burst · Karol Bagh · Emergency crew!')">
+                <circle cx="340" cy="248" r="12" fill="rgba(247,79,122,0.15)"/>
+                <circle cx="340" cy="248" r="7" fill="#f74f7a"/>
+                <text x="340" y="252" text-anchor="middle" fill="white" font-size="8">!</text>
+              </g>
+              <!-- Moderate: Light -->
+              <g filter="url(#pin-glow)" style="cursor:pointer" onclick="showToast('💡 Streetlight · CP · Electrician en route')">
+                <circle cx="225" cy="80" r="10" fill="rgba(247,195,79,0.15)"/>
+                <circle cx="225" cy="80" r="6" fill="#f7c34f"/>
+              </g>
+              <!-- Moderate: Garbage -->
+              <g filter="url(#pin-glow)" style="cursor:pointer" onclick="showToast('🗑 Garbage · Lajpat Nagar · Sanitation ETA 25m')">
+                <circle cx="630" cy="252" r="10" fill="rgba(247,195,79,0.15)"/>
+                <circle cx="630" cy="252" r="6" fill="#f7c34f"/>
+              </g>
+              <!-- Resolved -->
+              <g filter="url(#pin-glow)" style="cursor:pointer" onclick="showToast('✅ Resolved · Rohini Sector 3')">
+                <circle cx="750" cy="80" r="10" fill="rgba(0,255,200,0.12)"/>
+                <circle cx="750" cy="80" r="6" fill="#00ffc8"/>
+                <text x="750" y="84" text-anchor="middle" fill="#001a12" font-size="8" font-weight="bold">✓</text>
+              </g>
+
+              <!-- Pulse rings on critical -->
+              <circle class="pulse-ring" cx="468" cy="185" r="14" fill="none" stroke="#f74f7a" stroke-width="1.5" opacity="0"/>
+              <circle class="pulse-ring-2" cx="340" cy="248" r="14" fill="none" stroke="#f74f7a" stroke-width="1.5" opacity="0"/>
+
+              <!-- Map overlay info -->
+              <g>
+                <rect x="12" y="12" width="110" height="18" rx="3" fill="rgba(0,0,0,0.5)"/>
+                <text x="18" y="24" fill="rgba(255,255,255,0.5)" font-size="8" font-family="'DM Mono'">NEW DELHI, INDIA</text>
+              </g>
+            </svg>
+
+            <!-- Map legend overlay -->
+            <div class="map-legend-bar">
+              <div class="mleg"><span class="mleg-dot" style="background:#f74f7a"></span>Critical</div>
+              <div class="mleg"><span class="mleg-dot" style="background:#f7c34f"></span>Moderate</div>
+              <div class="mleg"><span class="mleg-dot" style="background:#00ffc8"></span>Resolved</div>
+              <div class="mleg"><span class="mleg-dot" style="background:#4fb3f7"></span>Transit</div>
+              <div class="mleg-sep"></div>
+              <div class="mleg map-total"><span id="map-pin-count">5</span> active issues</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TWO-COL ROW -->
+        <div class="row-2">
+
+          <!-- TRANSIT PANEL -->
+          <div class="panel panel-transit">
+            <div class="panel-header">
+              <span class="panel-label">PUBLIC TRANSIT</span>
+              <div class="transit-tabs" id="transit-tabs">
+                <button class="ttab active" onclick="switchTransit(this,'bus')">BUS</button>
+                <button class="ttab" onclick="switchTransit(this,'metro')">METRO</button>
+              </div>
+            </div>
+            <div class="transit-body" id="transit-body">
+              <!-- Bus entries injected by JS -->
+            </div>
+          </div>
+
+          <!-- REPORT PANEL -->
+          <div class="panel panel-report" id="report-section">
+            <div class="panel-header">
+              <span class="panel-label">SUBMIT REPORT</span>
+              <span class="panel-sub">avg 2 min response</span>
+            </div>
+            <div id="form-area">
+              <div class="rform">
+                <div class="rform-row">
+                  <div class="rform-field">
+                    <label class="rform-label" for="r-type">ISSUE TYPE</label>
+                    <div class="rform-select-wrap">
+                      <select class="rform-input" id="r-type">
+                        <option value="pothole">⬡ Pothole</option>
+                        <option value="light">◎ Streetlight</option>
+                        <option value="water">◈ Water Pipe</option>
+                        <option value="garbage">▣ Garbage</option>
+                        <option value="tree">❋ Tree Fall</option>
+                        <option value="power">⚡ Power Cut</option>
+                        <option value="other">◦ Other</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="rform-field">
+                    <label class="rform-label" for="r-loc">LOCATION</label>
+                    <input class="rform-input" type="text" id="r-loc" placeholder="Street / Sector / Area" />
+                  </div>
+                </div>
+                <div class="rform-field">
+                  <label class="rform-label" for="r-desc">DESCRIPTION</label>
+                  <input class="rform-input" type="text" id="r-desc" placeholder="Describe the issue briefly..." />
+                </div>
+                <div class="rform-field">
+                  <label class="rform-label">SEVERITY</label>
+                  <div class="sev-row">
+                    <button class="sev-btn" data-level="low" onclick="setSeverity(this)">
+                      <span class="sev-dot" style="background:#00ffc8"></span>LOW
+                    </button>
+                    <button class="sev-btn" data-level="med" onclick="setSeverity(this)">
+                      <span class="sev-dot" style="background:#f7c34f"></span>MEDIUM
+                    </button>
+                    <button class="sev-btn selected" data-level="hig" onclick="setSeverity(this)">
+                      <span class="sev-dot" style="background:#f74f7a"></span>CRITICAL
+                    </button>
+                  </div>
+                </div>
+                <button class="submit-report-btn" id="submit-btn" onclick="submitReport()">
+                  <span class="srb-text">SUBMIT REPORT</span>
+                  <span class="srb-icon">→</span>
+                </button>
+              </div>
+            </div>
+            <div class="form-success-state" id="form-success">
+              <div class="success-ring">
+                <div class="success-check">✓</div>
+              </div>
+              <div class="success-title">REPORT FILED</div>
+              <div class="success-ref">REF <span id="ref-num">#R-2842</span></div>
+              <div class="success-sub">Assigned to local crew · Est. 20 min response</div>
+              <button class="btn-outline-sm" onclick="resetForm()">SUBMIT ANOTHER</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ANALYTICS PANEL -->
+        <div class="panel panel-analytics">
+          <div class="panel-header">
+            <span class="panel-label">ISSUE ANALYTICS</span>
+            <div class="analytics-controls">
+              <button class="actl active" onclick="setChartPeriod(this,'week')">7D</button>
+              <button class="actl" onclick="setChartPeriod(this,'month')">30D</button>
+              <button class="actl" onclick="setChartPeriod(this,'year')">1Y</button>
+            </div>
+          </div>
+          <div class="analytics-body">
+            <div class="chart-area" id="chart-area"></div>
+            <div class="chart-x" id="chart-x"></div>
+            <div class="chart-legend">
+              <div class="cl-item"><span class="cl-sq" style="background:#f74f7a"></span>Critical</div>
+              <div class="cl-item"><span class="cl-sq" style="background:#f7c34f"></span>Moderate</div>
+              <div class="cl-item"><span class="cl-sq" style="background:#00ffc8"></span>Resolved</div>
+              <div class="cl-summary">
+                <span class="cl-total" id="cl-total">247</span>
+                <span class="cl-label">issues this period</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <footer class="footer">
+      <div class="footer-left">
+        <span class="footer-logo">◈ CITYPULSE</span>
+        <span class="footer-sep">·</span>
+        <span>Urban Intelligence Platform</span>
+      </div>
+      <div class="footer-center">
+        <span class="blink-dot"></span>
+        ALL SYSTEMS OPERATIONAL
+      </div>
+      <div class="footer-right">
+        <span id="footer-time">--:-- --</span>
+        <span class="footer-sep">·</span>
+        New Delhi, India
+      </div>
+    </footer>
+
+  </div><!-- /#app -->
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="toast-icon">◈</span>
+    <span id="toast-msg">—</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
